@@ -3,7 +3,7 @@
     (C) あかつきみさき(みくちぃP)
 
   このスクリプトについて
-    レイヤーにカメラ距離に応じたデプスのグラデーションを適用します.
+    選択したレイヤーにカメラ距離に応じたデプスのグラデーションを適用します.
 
   使用方法
     スクリプトファイルの実行より実行してください.
@@ -12,6 +12,9 @@
     Adobe After Effects CS6以上
 
   バージョン情報
+    2016/08/23 Ver 1.1.0 Update
+      nearプロパティの追加.
+
     2016/07/21 Ver 1.0.0 Release
  */
 
@@ -64,6 +67,7 @@
   const ADBE_Slider_Control: string = "ADBE Slider Control";
   const ADBE_Slider_Control_0001: string = "ADBE Slider Control-0001";
   const DEFAULT_FAR_VALUE: number = 5000;
+  const DEFAULT_NEAR_VALUE: number = 0;
 
   const supportVersion: AE_Version = AE_Version.CS6;
   if (!AK_Utils.isSupportedVersion(supportVersion)) {
@@ -87,34 +91,38 @@
   }
 
   let gradientEffect: PropertyBase;
-  let sliderEffect: PropertyBase;
+  let farSlider: PropertyBase;
 
   for (let i = 0; i < selLayers.length; i++) {
     selLayers[i].threeDLayer = true;
     selLayers[i].autoOrient = AutoOrientType.CAMERA_OR_POINT_OF_INTEREST;
 
-    sliderEffect = selLayers[i].property(ADBE_Effect_Parade).addProperty(ADBE_Slider_Control);
-    sliderEffect.property(ADBE_Slider_Control_0001).setValue(DEFAULT_FAR_VALUE);
+    farSlider = selLayers[i].property(ADBE_Effect_Parade).addProperty(ADBE_Slider_Control);
+    farSlider.property(ADBE_Slider_Control_0001).setValue(DEFAULT_FAR_VALUE);
+    farSlider.name = "Far";
+
+    nearSlider = selLayers[i].property(ADBE_Effect_Parade).addProperty(ADBE_Slider_Control);
+    nearSlider.property(ADBE_Slider_Control_0001).setValue(DEFAULT_NEAR_VALUE);
+    nearSlider.name = "Near";
 
     gradientEffect = selLayers[i].property(ADBE_Effect_Parade).addProperty(ADBE_4ColorGradient);
 
     // addPropertyで参照が外れるので再取得
-    sliderEffect = selLayers[i].property(ADBE_Effect_Parade).property(gradientEffect.propertyIndex - 1);
-    sliderEffect.name = 'Far (' + sliderEffect.name + ')';
+    farSlider = selLayers[i].property(ADBE_Effect_Parade).property(gradientEffect.propertyIndex - 2);
+    nearSlider = selLayers[i].property(ADBE_Effect_Parade).property(gradientEffect.propertyIndex - 1);
 
     selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0001").expression = "[0,0]";
-    selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0002").expression = 'far = effect("' + sliderEffect.name + '")("' + ADBE_Slider_Control_0001 + '");\ncamera = thisComp.activeCamera;\ncameraPosition = camera.toWorld([0,0,0]);\npoint = effect("' + gradientEffect.name + '")("ADBE 4ColorGradient-0001");\nposition = thisLayer.toWorld(point);\nd = length(cameraPosition, position);\nf = linear(d, 0, far, 1, 0);\n[f,f,f,1]';
+    selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0002").expression = 'far = effect("' + farSlider.name + '")("' + ADBE_Slider_Control_0001 + '");\nnear = effect("' + nearSlider.name + '")("' + ADBE_Slider_Control_0001 + '");\ncamera = thisComp.activeCamera;\ncameraPosition = camera.toWorld([0,0,0]);\npoint = effect("' + gradientEffect.name + '")("ADBE 4ColorGradient-0001");\ngPosition = thisLayer.toWorld(point);\nd = length(cameraPosition, gPosition);\nf = linear(d, near, far, 1, 0);\n[f,f,f,1]';
 
     selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0003").expression = "[thisLayer.width,0]";
-    selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0004").expression = 'far = effect("' + sliderEffect.name + '")("' + ADBE_Slider_Control_0001 + '");\ncamera = thisComp.activeCamera;\ncameraPosition = camera.toWorld([0,0,0]);\npoint = effect("' + gradientEffect.name + '")("ADBE 4ColorGradient-0003");\nposition = thisLayer.toWorld(point);\nd = length(cameraPosition, position);\nf = linear(d, 0, far, 1, 0);\n[f,f,f,1]';
+    selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0004").expression = 'far = effect("' + farSlider.name + '")("' + ADBE_Slider_Control_0001 + '");\nnear = effect("' + nearSlider.name + '")("' + ADBE_Slider_Control_0001 + '");\ncamera = thisComp.activeCamera;\ncameraPosition = camera.toWorld([0,0,0]);\npoint = effect("' + gradientEffect.name + '")("ADBE 4ColorGradient-0003");\ngPosition = thisLayer.toWorld(point);\nd = length(cameraPosition, gPosition);\nf = linear(d, near, far, 1, 0);\n[f,f,f,1]';
 
     selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0005").expression = "[0,thisLayer.height]";
-    selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0006").expression = 'far = effect("' + sliderEffect.name + '")("' + ADBE_Slider_Control_0001 + '");\ncamera = thisComp.activeCamera;\ncameraPosition = camera.toWorld([0,0,0]);\npoint = effect("' + gradientEffect.name + '")("ADBE 4ColorGradient-0005");\nposition = thisLayer.toWorld(point);\nd = length(cameraPosition, position);\nf = linear(d, 0, far, 1, 0);\n[f,f,f,1]';
+    selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0006").expression = 'far = effect("' + farSlider.name + '")("' + ADBE_Slider_Control_0001 + '");\nnear = effect("' + nearSlider.name + '")("' + ADBE_Slider_Control_0001 + '");\ncamera = thisComp.activeCamera;\ncameraPosition = camera.toWorld([0,0,0]);\npoint = effect("' + gradientEffect.name + '")("ADBE 4ColorGradient-0005");\ngPosition = thisLayer.toWorld(point);\nd = length(cameraPosition, gPosition);\nf = linear(d, near, far, 1, 0);\n[f,f,f,1]';
 
     selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0007").expression = "[thisLayer.width,thisLayer.height]";
-    selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0008").expression = 'far = effect("' + sliderEffect.name + '")("' + ADBE_Slider_Control_0001 + '");\ncamera = thisComp.activeCamera;\ncameraPosition = camera.toWorld([0,0,0]);\npoint = effect("' + gradientEffect.name + '")("ADBE 4ColorGradient-0005");\nposition = thisLayer.toWorld(point);\nd = length(cameraPosition, position);\nf = linear(d, 0, far, 1, 0);\n[f,f,f,1]';
+    selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0008").expression = 'far = effect("' + farSlider.name + '")("' + ADBE_Slider_Control_0001 + '");\nnear = effect("' + nearSlider.name + '")("' + ADBE_Slider_Control_0001 + '");\ncamera = thisComp.activeCamera;\ncameraPosition = camera.toWorld([0,0,0]);\npoint = effect("' + gradientEffect.name + '")("ADBE 4ColorGradient-0005");\ngPosition = thisLayer.toWorld(point);\nd = length(cameraPosition, gPosition);\nf = linear(d, near, far, 1, 0);\n[f,f,f,1]';
   }
 
   app.endUndoGroup();
-
 })();

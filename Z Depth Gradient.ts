@@ -14,6 +14,7 @@
   バージョン情報
     2016/08/23 Ver 1.1.0 Update
       nearプロパティの追加.
+      カラー4のエクスプレッションでポイント4への参照が間違っていた問題の修正.
 
     2016/07/21 Ver 1.0.0 Release
  */
@@ -121,7 +122,7 @@
     selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0006").expression = 'far = effect("' + farSlider.name + '")("' + ADBE_Slider_Control_0001 + '");\nnear = effect("' + nearSlider.name + '")("' + ADBE_Slider_Control_0001 + '");\ncamera = thisComp.activeCamera;\ncameraPosition = camera.toWorld([0,0,0]);\npoint = effect("' + gradientEffect.name + '")("ADBE 4ColorGradient-0005");\ngPosition = thisLayer.toWorld(point);\nd = length(cameraPosition, gPosition);\nf = linear(d, near, far, 1, 0);\n[f,f,f,1]';
 
     selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0007").expression = "[thisLayer.width,thisLayer.height]";
-    selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0008").expression = 'far = effect("' + farSlider.name + '")("' + ADBE_Slider_Control_0001 + '");\nnear = effect("' + nearSlider.name + '")("' + ADBE_Slider_Control_0001 + '");\ncamera = thisComp.activeCamera;\ncameraPosition = camera.toWorld([0,0,0]);\npoint = effect("' + gradientEffect.name + '")("ADBE 4ColorGradient-0005");\ngPosition = thisLayer.toWorld(point);\nd = length(cameraPosition, gPosition);\nf = linear(d, near, far, 1, 0);\n[f,f,f,1]';
+    selLayers[i].property(ADBE_Effect_Parade).property(ADBE_4ColorGradient).property("ADBE 4ColorGradient-0008").expression = 'far = effect("' + farSlider.name + '")("' + ADBE_Slider_Control_0001 + '");\nnear = effect("' + nearSlider.name + '")("' + ADBE_Slider_Control_0001 + '");\ncamera = thisComp.activeCamera;\ncameraPosition = camera.toWorld([0,0,0]);\npoint = effect("' + gradientEffect.name + '")("ADBE 4ColorGradient-0007");\ngPosition = thisLayer.toWorld(point);\nd = length(cameraPosition, gPosition);\nf = linear(d, near, far, 1, 0);\n[f,f,f,1]';
   }
 
   app.endUndoGroup();
